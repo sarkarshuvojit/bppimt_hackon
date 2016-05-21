@@ -12,10 +12,10 @@
 	<div class="mainCon">
 		<div id="map"></div>
 		<script>
-		var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';	//Labels for markers
 		var my_marker;
-    var markers = {}
-    var marker_count = 0;
+    var markers = {};	//array to hold all markers
+    var marker_count = 0; //counter which keeps track of number of markers to limit till 10
 			function initMap() {
 				var map = new google.maps.Map(document.getElementById('map'), {
 					center: {lat: -34.397, lng: 150.644},
@@ -46,7 +46,7 @@
 
 
 map.addListener('click', function(e) {
-  if(marker_count>9){
+  if(marker_count>9){ //doesn't let you add more than 10 markers
     alert("No new markers can be added.");
     for(i in markers){
       console.log(markers[i].getPosition().lat())
@@ -137,10 +137,10 @@ $(".nextButt").click(function(){
     var res = JSON.parse(data)['data'];
 		console.log(res)
 		for(i in res){
-			if(parseInt(res[i])==0 && i!=0)break;
-			// console.log(i+ " "+ res[i])
-			// console.log((i+1)+ " "+ res[parseInt(i)+1])
+			if(parseInt(res[i])==0 && i!=0)break;	//break at last-second element to prevent getting a out of bounds error
 
+			//next line ta onek hifi, expain korte lyadh lagche ekhon
+			//TODO: explain porer line
 			$("#list_of_path").append('<div class="resultView"><p class="resultText">'+labels[parseInt(res[i]) % labels.length]+' - '+labels[parseInt(res[parseInt(i)+1]) % labels.length]+'</p></div>');
 		}
     $(".modal").hide();
