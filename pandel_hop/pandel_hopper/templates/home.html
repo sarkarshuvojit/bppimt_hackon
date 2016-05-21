@@ -1,0 +1,154 @@
+<html>
+<head>
+	<link rel="stylesheet" href="/static/pandel.css">
+	<link href='https://fonts.googleapis.com/css?family=Roboto:400,300,500' rel='stylesheet' type='text/css'>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+	<title>Pandel Hopping!</title>
+</head>
+</body>
+<div class="modal"></div>
+<div class="titleBar"><p class="title"style="text-align: center">Pin Puja!</p></div>
+<div class="container">
+	<div class="mainCon">
+		<div id="map"></div>
+		<script>
+		var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+		var my_marker;
+    var markers = {}
+    var marker_count = 0;
+			function initMap() {
+				var map = new google.maps.Map(document.getElementById('map'), {
+					center: {lat: -34.397, lng: 150.644},
+					zoom: 15
+				});
+
+
+				var infoWindow = new google.maps.InfoWindow({map: map});
+
+  // Try HTML5 geolocation.
+  if (navigator.geolocation) {
+  	navigator.geolocation.getCurrentPosition(function(position) {
+  		var pos = {
+  			lat: position.coords.latitude,
+  			lng: position.coords.longitude
+  		};
+
+  		infoWindow.setPosition(pos);
+  		infoWindow.setContent('You\'re here.');
+  		map.setCenter(pos);
+  	}, function() {
+  		handleLocationError(true, infoWindow, map.getCenter());
+  	});
+  } else {
+    // Browser doesn't support Geolocation
+    handleLocationError(false, infoWindow, map.getCenter());
+}
+
+
+map.addListener('click', function(e) {
+  if(marker_count>9){
+    alert("No new markers can be added.");
+    for(i in markers){
+      console.log(markers[i].getPosition().lat())
+    }
+    return false;
+  }
+  // marker_count++;
+	placeMarkerAndPanTo(e.latLng, map);
+});
+
+
+function placeMarkerAndPanTo(latLng, map) {
+
+	var marker = new google.maps.Marker({
+		label: labels[marker_count % labels.length],
+		position: latLng,
+		map: map
+	});
+	map.panTo(latLng);
+  marker['ind'] = marker_count;
+
+  markers[marker_count] = marker;
+  markers[marker_count].addListener('click', function() {
+
+      markers[this['ind']].setMap(null);
+      delete markers[this['ind']];
+      marker_count--;
+  });
+
+
+
+
+  marker_count++;
+}
+
+}
+
+function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+	infoWindow.setPosition(pos);
+	infoWindow.setContent(browserHasGeolocation ?
+		'Error: The Geolocation service failed.' :
+		'Error: Your browser doesn\'t support geolocation.');
+}
+
+
+
+
+
+</script>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDBOSr6_XxvISPGX54P9bPnooE3RUpRTp0&callback=initMap"
+type="text/javascript"></script>
+
+<div class="buttons">
+	<div class="nextButt"><p class="buttText">Track</p></div>
+	<div style="width:100%; height:auto;" id="list_of_path">
+
+
+	</div>
+	<!-- <div class="resultView"><p class="resultText">Start - End</p></div>
+	<div class="resultView"><p class="resultText">Start - End</p></div> -->
+
+</div>
+</div>
+</div>
+<script   src="https://code.jquery.com/jquery-2.2.4.js"   integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI="   crossorigin="anonymous"></script>
+<script>
+function get_marker_data(){
+  var data = {};
+  for(i in markers){
+    data[i] = markers[i].getPosition().lat()+","+markers[i].getPosition().lng();
+  }
+  // console.log(data);
+  return data;
+}
+$(".nextButt").click(function(){
+  $(".modal").show();
+  if(marker_count<2){
+    alert("Please select at least 2 markers");
+    $(".modal").hide();
+    return false;
+  }
+  var data = {'data' : JSON.stringify(get_marker_data())};
+  // console.log(data)
+	$("#list_of_path").html("");
+  $.post('http://127.0.0.1:8000/gen_path/', data, function(data){
+		// console.log(data)
+    var res = JSON.parse(data)['data'];
+		console.log(res)
+		for(i in res){
+			if(parseInt(res[i])==0 && i!=0)break;
+			// console.log(i+ " "+ res[i])
+			// console.log((i+1)+ " "+ res[parseInt(i)+1])
+
+			$("#list_of_path").append('<div class="resultView"><p class="resultText">'+labels[parseInt(res[i]) % labels.length]+' - '+labels[parseInt(res[parseInt(i)+1]) % labels.length]+'</p></div>');
+		}
+    $(".modal").hide();
+  }).error(function(){
+    alert("Sorrryyyyy!!!");
+		$(".modal").hide();
+  });
+});
+</script>
+</body>
+</html>
